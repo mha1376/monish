@@ -37,6 +37,12 @@ host=1.2.3.4
 user=ubuntu
 ```
 
+## Environment variables
+The collectors module reads server names from the `SERVER_NAME` environment variable. It must contain a space-separated list of servers before running `collect_servers` or `collect_all` directly:
+```bash
+export SERVER_NAME="web1 db1"
+```
+
 ## Color thresholds
 | Metric | Green | Yellow | Red |
 |--------|-------|--------|-----|
