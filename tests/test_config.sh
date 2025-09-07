@@ -36,12 +36,38 @@ CFG
     [[ "$ssh_options" == 'ProxyCommand ssh -W %h:%p jump;host' ]]
 }
 
+test_invalid_key_rejected() {
+    local cfg
+    cfg=$(mktemp)
+    cat <<'CFG' > "$cfg"
+badkey=value
+CFG
+    parse_config "$cfg"
+    [[ -z "${badkey+x}" ]]
+}
+
+test_command_injection_ignored() {
+    local cfg tmp
+    cfg=$(mktemp)
+    tmp=$(mktemp)
+    rm "$tmp"
+    cat <<CFG > "$cfg"
+user=\$(touch "$tmp")
+CFG
+    parse_config "$cfg"
+    [[ "$user" == "\$(touch \"$tmp\")" && ! -e "$tmp" ]]
+}
+
 run_tests() {
     test_hash_in_quotes && pass "hash_in_quotes" || fail "hash_in_quotes"
     unset ssh_options user
     test_hash_outside_quotes && pass "hash_outside_quotes" || fail "hash_outside_quotes"
     unset ssh_options user
     test_semicolon_in_quotes && pass "semicolon_in_quotes" || fail "semicolon_in_quotes"
+    unset ssh_options user badkey
+    test_invalid_key_rejected && pass "invalid_key_rejected" || fail "invalid_key_rejected"
+    unset ssh_options user badkey
+    test_command_injection_ignored && pass "command_injection_ignored" || fail "command_injection_ignored"
 }
 
 run_tests
