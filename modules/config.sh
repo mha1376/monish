@@ -6,6 +6,7 @@
 
 parse_config() {
     local file="$1"
+    local key value
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Use awk to strip comments only when outside quotes
         line=$(printf '%s\n' "$line" | awk '{
@@ -26,11 +27,26 @@ parse_config() {
         [[ "$line" == \#* || "$line" == \;* ]] && continue
 
         if [[ "$line" == *"="* ]]; then
-            local key="${line%%=*}"
-            local value="${line#*=}"
+            key="${line%%=*}"
+            value="${line#*=}"
             key="${key%"${key##*[![:space:]]}"}"
             value="${value#"${value%%[![:space:]]*}"}"
-            eval "$key=$value"
+
+            if [[ ${#value} -ge 2 ]]; then
+                first="${value:0:1}"
+                last="${value: -1}"
+                if [[ ( $first == '"' && $last == '"' ) || ( $first == "'" && $last == "'" ) ]]; then
+                    value="${value:1:-1}"
+                fi
+            fi
+
+            [[ $value == ~* ]] && value="${value/#~/$HOME}"
+
+            case "$key" in
+                host|port|user|auth|key_path|ssh_options|refresh_sec|concurrency|ping_count|ping_timeout)
+                    printf -v "$key" '%s' "$value"
+                    ;;
+            esac
         fi
     done < "$file"
 }
