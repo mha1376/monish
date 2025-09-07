@@ -7,6 +7,7 @@
 # order provided in the SERVER_NAME variable.
 
 collect_servers() {
+    [[ -n ${SERVER_NAME:-} ]] || { echo "SERVER_NAME not set" >&2; return 1; }
     local tmpdir
     tmpdir=$(mktemp -d)
     local i=0
