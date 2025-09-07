@@ -24,4 +24,3 @@ collect_servers() {
 
     rm -rf "$tmpdir"
 }
-
