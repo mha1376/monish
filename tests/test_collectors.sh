@@ -28,3 +28,14 @@ if [ "$result_all" != "$expected" ]; then
     exit 1
 fi
 
+# collect_servers should fail when SERVER_NAME is unset
+unset SERVER_NAME
+if output=$(collect_servers 2>&1); then
+    echo "expected collect_servers to fail without SERVER_NAME" >&2
+    exit 1
+fi
+if [[ "$output" != "SERVER_NAME not set" ]]; then
+    echo "unexpected error: $output" >&2
+    exit 1
+fi
+
