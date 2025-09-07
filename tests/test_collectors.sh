@@ -18,3 +18,13 @@ if [ "$result" != "$expected" ]; then
     echo "Got:\n$result" >&2
     exit 1
 fi
+
+# collect_all should currently behave identically to collect_servers
+result_all="$(collect_all)"
+if [ "$result_all" != "$expected" ]; then
+    echo "collect_all mismatch" >&2
+    echo "Expected:\n$expected" >&2
+    echo "Got:\n$result_all" >&2
+    exit 1
+fi
+

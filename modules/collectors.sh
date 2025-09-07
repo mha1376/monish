@@ -24,3 +24,11 @@ collect_servers() {
 
     rm -rf "$tmpdir"
 }
+
+# collect_all: gather data from all configured collectors. For now this
+# simply returns the server names in the order provided by SERVER_NAME.
+# This placeholder prevents the main script from failing when invoking
+# collect_all and can be extended with additional collectors later.
+collect_all() {
+    collect_servers
+}
