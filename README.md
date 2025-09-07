@@ -37,6 +37,33 @@ host=1.2.3.4
 user=ubuntu
 ```
 
+## Required variables
+`monish.sh` expects a few shell variables to be defined. They may be placed in
+the config file or exported in the environment.
+
+- `SERVER_NAME` – space‑separated list of servers to display.
+- `REFRESH_SEC` – refresh interval in seconds.
+
+### Minimal example
+Create a config file with the required variables:
+
+```
+SERVER_NAME="local"
+REFRESH_SEC=3
+```
+
+Run the script with:
+
+```
+./monish.sh -c monish.conf
+```
+
+Or provide the values via environment variables:
+
+```
+SERVER_NAME="local" REFRESH_SEC=3 ./monish.sh --once
+```
+
 ## Color thresholds
 | Metric | Green | Yellow | Red |
 |--------|-------|--------|-----|
