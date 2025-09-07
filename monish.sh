@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+# Ensure the script is executed with Bash. If invoked with a different shell
+# (e.g. `sh monish.sh`), emit a clear error before using Bash-specific options
+# like `pipefail`.
+if [ -z "${BASH_VERSION:-}" ]; then
+  echo "Error: monish.sh requires bash. Run it with 'bash monish.sh' or make it executable." >&2
+  exit 1
+fi
+
 set -euo pipefail
 
 # Monish main entrypoint
