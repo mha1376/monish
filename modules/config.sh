@@ -34,4 +34,3 @@ parse_config() {
         fi
     done < "$file"
 }
-
