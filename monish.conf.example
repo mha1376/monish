@@ -1,0 +1,13 @@
+[defaults]
+port=22
+user=root
+auth=agent
+key_path=~/.ssh/id_rsa
+ssh_options=-o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no
+refresh_sec=3
+concurrency=10
+ping_count=1
+ping_timeout=1
+
+[server "local"]
+host=localhost

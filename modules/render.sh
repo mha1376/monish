@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 # escape_json: escape characters in a string for safe JSON embedding
 # Replaces backslashes and double quotes with escaped versions
 escape_json() {
