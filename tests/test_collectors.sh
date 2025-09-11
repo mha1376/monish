@@ -58,7 +58,15 @@ parse_config "$cfg"
 
 run_ssh() {
     local host=$1 user=$2 port=$3 auth=$4 key=$5 opts=$6 cmd=$7
-    echo "$user@$host:$cmd"
+    if [[ $cmd == "df -h / --output=pcent | tail -n 1" ]]; then
+        if [[ $host == host1 ]]; then
+            echo "10%"
+        else
+            echo "20%"
+        fi
+    else
+        echo "$user@$host:$cmd"
+    fi
 }
 
 expected_remote=$'alpha\tuser1@host1:uptime\nbeta\tuser2@host2:uptime'
@@ -70,10 +78,20 @@ if [ "$result_remote" != "$expected_remote" ]; then
     exit 1
 fi
 
+expected_disk=$'alpha\t10%\nbeta\t20%'
+result_disk="$(collect_disk_usage)"
+if [ "$result_disk" != "$expected_disk" ]; then
+    echo "collect_disk_usage mismatch" >&2
+    echo "Expected:\n$expected_disk" >&2
+    echo "Got:\n$result_disk" >&2
+    exit 1
+fi
+
+expected_all=$'alpha\tuser1@host1:uptime\t10%\nbeta\tuser2@host2:uptime\t20%'
 result_all="$(collect_all uptime)"
-if [ "$result_all" != "$expected_remote" ]; then
+if [ "$result_all" != "$expected_all" ]; then
     echo "collect_all mismatch" >&2
-    echo "Expected:\n$expected_remote" >&2
+    echo "Expected:\n$expected_all" >&2
     echo "Got:\n$result_all" >&2
     exit 1
 fi

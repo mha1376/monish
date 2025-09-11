@@ -45,8 +45,36 @@ collect_remote() {
     done
 }
 
+# collect_disk_usage: fetch disk usage percentage for each server's root filesystem.
+# Uses df -h / and extracts the percentage used column.
+collect_disk_usage() {
+    [[ -n ${SERVER_NAME:-} ]] || { echo "SERVER_NAME not set" >&2; return 1; }
+    for server in $SERVER_NAME; do
+        local host=${HOST[$server]}
+        local user=${USER[$server]}
+        local port=${PORT[$server]:-22}
+        local auth=${AUTH[$server]:-key}
+        local key=${KEY_PATH[$server]:-}
+        local opts=${SSH_OPTIONS[$server]:-}
+        local password=${PASSWORD[$server]:-}
+        local cmd="df -h / --output=pcent | tail -n 1"
+        local usage
+        SSH_PASSWORD="$password" usage=$(run_ssh "$host" "$user" "$port" "$auth" "$key" "$opts" "$cmd")
+        printf '%s\t%s\n' "$server" "$usage"
+    done
+}
+
 # collect_all: gather data from all configured collectors. Currently this
-# proxies to collect_remote, returning the command output for each server.
+# collects remote command output and disk usage for each server, returning
+# tab-separated fields: name, command output, disk usage.
 collect_all() {
-    collect_remote "$@"
+    [[ -n ${SERVER_NAME:-} ]] || { echo "SERVER_NAME not set" >&2; return 1; }
+    local cmd=${1:-uptime}
+    declare -A _disk
+    while IFS=$'\t' read -r srv du; do
+        _disk["$srv"]="$du"
+    done < <(collect_disk_usage)
+    while IFS=$'\t' read -r srv out; do
+        printf '%s\t%s\t%s\n' "$srv" "$out" "${_disk[$srv]}"
+    done < <(collect_remote "$cmd")
 }

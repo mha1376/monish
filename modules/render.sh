@@ -9,32 +9,33 @@ escape_json() {
   printf '%s' "$input"
 }
 
-# render_json_line name host uptime
+# render_json_line name host uptime disk_usage
 # Renders a single JSON object with provided fields
 render_json_line() {
-  local name host uptime
+  local name host uptime disk_usage
   name="$(escape_json "$1")"
   host="$(escape_json "$2")"
   uptime="$(escape_json "$3")"
-  printf '{"name":"%s","host":"%s","uptime":"%s"}\n' "$name" "$host" "$uptime"
+  disk_usage="$(escape_json "$4")"
+  printf '{"name":"%s","host":"%s","uptime":"%s","disk_usage":"%s"}\n' "$name" "$host" "$uptime" "$disk_usage"
 }
 
 # render_json data
-# Renders the collected data as a JSON array. Each line of input is treated
-# as a server name. Host and uptime fields are left empty for now.
+# Renders the collected data as a JSON array. Each input line is expected to be
+# tab-separated fields: name, uptime, disk usage. Host is omitted for now.
 render_json() {
   local data="$1"
   local first=true
   printf '['
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    [[ -z "$line" ]] && continue
+  while IFS=$'\t' read -r name uptime disk_usage || [[ -n "$name" ]]; do
+    [[ -z "$name" ]] && continue
     if $first; then
       first=false
     else
       printf ','
     fi
     local json_line
-    json_line=$(render_json_line "$line" "" "" | tr -d '\n')
+    json_line=$(render_json_line "$name" "" "$uptime" "$disk_usage" | tr -d '\n')
     printf '\n  %s' "$json_line"
   done <<< "$data"
   printf '\n]\n'
@@ -46,8 +47,9 @@ render_json() {
 render_table() {
   local data="$1"
   tput clear 2>/dev/null || true
-  printf '%-20s\n' "NAME"
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    printf '%-20s\n' "$line"
+  printf '%-20s %-20s %-10s\n' "NAME" "UPTIME" "DISK%"
+  while IFS=$'\t' read -r name uptime disk_usage || [[ -n "$name" ]]; do
+    [[ -z "$name" ]] && continue
+    printf '%-20s %-20s %-10s\n' "$name" "$uptime" "$disk_usage"
   done <<< "$data"
 }
