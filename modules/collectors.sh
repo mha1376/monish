@@ -26,10 +26,27 @@ collect_servers() {
     rm -rf "$tmpdir"
 }
 
-# collect_all: gather data from all configured collectors. For now this
-# simply returns the server names in the order provided by SERVER_NAME.
-# This placeholder prevents the main script from failing when invoking
-# collect_all and can be extended with additional collectors later.
+# collect_remote: run a command on each configured server via SSH.
+# Outputs the server name followed by a tab and the command result.
+collect_remote() {
+    [[ -n ${SERVER_NAME:-} ]] || { echo "SERVER_NAME not set" >&2; return 1; }
+    local cmd=${1:-uptime}
+    for server in $SERVER_NAME; do
+        local host=${HOST[$server]}
+        local user=${USER[$server]}
+        local port=${PORT[$server]:-22}
+        local auth=${AUTH[$server]:-key}
+        local key=${KEY_PATH[$server]:-}
+        local opts=${SSH_OPTIONS[$server]:-}
+        local password=${PASSWORD[$server]:-}
+        local output
+        SSH_PASSWORD="$password" output=$(run_ssh "$host" "$user" "$port" "$auth" "$key" "$opts" "$cmd")
+        printf '%s\t%s\n' "$server" "$output"
+    done
+}
+
+# collect_all: gather data from all configured collectors. Currently this
+# proxies to collect_remote, returning the command output for each server.
 collect_all() {
-    collect_servers
+    collect_remote "$@"
 }

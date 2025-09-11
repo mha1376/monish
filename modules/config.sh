@@ -6,9 +6,20 @@
 
 parse_config() {
     local file="$1"
-    local key value
+    local key value current_server
     SERVER_NAME=""
     REFRESH_SEC=3
+    declare -gA HOST USER PORT AUTH KEY_PATH SSH_OPTIONS PASSWORD CONCURRENCY PING_COUNT PING_TIMEOUT
+    HOST=()
+    USER=()
+    PORT=()
+    AUTH=()
+    KEY_PATH=()
+    SSH_OPTIONS=()
+    PASSWORD=()
+    CONCURRENCY=()
+    PING_COUNT=()
+    PING_TIMEOUT=()
     local section_re='^\[server[[:space:]]+"([^"]+)"\]$'
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Use awk to strip comments only when outside quotes
@@ -30,7 +41,8 @@ parse_config() {
         [[ "$line" == \#* || "$line" == \;* ]] && continue
 
         if [[ $line =~ $section_re ]]; then
-            SERVER_NAME="${SERVER_NAME:+$SERVER_NAME }${BASH_REMATCH[1]}"
+            current_server="${BASH_REMATCH[1]}"
+            SERVER_NAME="${SERVER_NAME:+$SERVER_NAME }$current_server"
             continue
         fi
 
@@ -55,10 +67,18 @@ parse_config() {
                     REFRESH_SEC="$value"
                     ;;
                 host|port|user|auth|key_path|ssh_options|password|concurrency|ping_count|ping_timeout)
-                    printf -v "$key" '%s' "$value"
-                    if [[ $key == password ]]; then
-                        export SSH_PASSWORD="$value"
-                    fi
+                    case "$key" in
+                        host)        HOST["$current_server"]="$value" ;;
+                        port)        PORT["$current_server"]="$value" ;;
+                        user)        USER["$current_server"]="$value" ;;
+                        auth)        AUTH["$current_server"]="$value" ;;
+                        key_path)    KEY_PATH["$current_server"]="$value" ;;
+                        ssh_options) SSH_OPTIONS["$current_server"]="$value" ;;
+                        password)    PASSWORD["$current_server"]="$value" ;;
+                        concurrency) CONCURRENCY["$current_server"]="$value" ;;
+                        ping_count)  PING_COUNT["$current_server"]="$value" ;;
+                        ping_timeout) PING_TIMEOUT["$current_server"]="$value" ;;
+                    esac
                     ;;
             esac
         fi
