@@ -54,7 +54,7 @@ parse_config() {
                 refresh_sec)
                     REFRESH_SEC="$value"
                     ;;
-                host|port|user|auth|key_path|ssh_options|concurrency|ping_count|ping_timeout)
+                host|port|user|auth|key_path|ssh_options|password|concurrency|ping_count|ping_timeout)
                     printf -v "$key" '%s' "$value"
                     ;;
             esac
