@@ -6,7 +6,7 @@ Lightweight Bash server monitoring dashboard.
 - Single-screen terminal dashboard
 - CPU load, RAM%, disk%, uptime, ping
 - Parallel SSH checks with minimal dependencies
-- Color thresholds
+- Color thresholds for load, RAM%, disk%, and ping
 - JSON output for automation
 
 ## Requirements
@@ -68,6 +68,9 @@ The refresh interval is configured via `refresh_sec` (default 3 seconds). `monis
 | RAM%   | <70   | 70-85  | >85 |
 | Disk%  | <70   | 70-85  | >85 |
 | Ping ms| <50   | 50-150 | >150 |
+
+Disk% and RAM% values displayed in the table are wrapped in green/yellow/red
+colors based on these thresholds.
 
 ## Security
 Use key-based auth or SSH agent. Password auth requires `sshpass` and is not recommended.
