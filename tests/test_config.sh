@@ -10,36 +10,40 @@ test_hash_in_quotes() {
     local cfg
     cfg=$(mktemp)
     cat <<'CFG' > "$cfg"
+[server "alpha"]
 ssh_options="ProxyCommand ssh -W %h:%p jump#host"
 CFG
     parse_config "$cfg"
-    [[ "$ssh_options" == 'ProxyCommand ssh -W %h:%p jump#host' ]]
+    [[ "${SSH_OPTIONS[alpha]}" == 'ProxyCommand ssh -W %h:%p jump#host' ]]
 }
 
 test_hash_outside_quotes() {
     local cfg
     cfg=$(mktemp)
     cat <<'CFG' > "$cfg"
+[server "alpha"]
 user=me # comment
 CFG
     parse_config "$cfg"
-    [[ "$user" == 'me' ]]
+    [[ "${USER[alpha]}" == 'me' ]]
 }
 
 test_semicolon_in_quotes() {
     local cfg
     cfg=$(mktemp)
     cat <<'CFG' > "$cfg"
+[server "alpha"]
 ssh_options="ProxyCommand ssh -W %h:%p jump;host"
 CFG
     parse_config "$cfg"
-    [[ "$ssh_options" == 'ProxyCommand ssh -W %h:%p jump;host' ]]
+    [[ "${SSH_OPTIONS[alpha]}" == 'ProxyCommand ssh -W %h:%p jump;host' ]]
 }
 
 test_invalid_key_rejected() {
     local cfg
     cfg=$(mktemp)
     cat <<'CFG' > "$cfg"
+[server "alpha"]
 badkey=value
 CFG
     parse_config "$cfg"
@@ -52,10 +56,11 @@ test_command_injection_ignored() {
     tmp=$(mktemp)
     rm "$tmp"
     cat <<CFG > "$cfg"
+[server "alpha"]
 user=\$(touch "$tmp")
 CFG
     parse_config "$cfg"
-    [[ "$user" == "\$(touch \"$tmp\")" && ! -e "$tmp" ]]
+    [[ "${USER[alpha]}" == "\$(touch \"$tmp\")" && ! -e "$tmp" ]]
 }
 
 test_server_sections() {
@@ -90,27 +95,28 @@ test_password_key() {
     local cfg
     cfg=$(mktemp)
     cat <<'CFG' > "$cfg"
+[server "alpha"]
 password=s3cr3t
 CFG
     parse_config "$cfg"
-    [[ "$password" == 's3cr3t' && "$SSH_PASSWORD" == 's3cr3t' ]]
+    [[ "${PASSWORD[alpha]}" == 's3cr3t' && -z ${SSH_PASSWORD+x} ]]
 }
 
 run_tests() {
     test_hash_in_quotes && pass "hash_in_quotes" || fail "hash_in_quotes"
-    unset ssh_options user
+    unset SSH_OPTIONS USER
     test_hash_outside_quotes && pass "hash_outside_quotes" || fail "hash_outside_quotes"
-    unset ssh_options user
+    unset SSH_OPTIONS USER
     test_semicolon_in_quotes && pass "semicolon_in_quotes" || fail "semicolon_in_quotes"
-    unset ssh_options user badkey
+    unset SSH_OPTIONS USER badkey
     test_invalid_key_rejected && pass "invalid_key_rejected" || fail "invalid_key_rejected"
-    unset ssh_options user badkey
+    unset SSH_OPTIONS USER badkey
     test_command_injection_ignored && pass "command_injection_ignored" || fail "command_injection_ignored"
-    unset ssh_options user badkey
+    unset SSH_OPTIONS USER badkey
     test_server_sections && pass "server_sections" || fail "server_sections"
     unset SERVER_NAME REFRESH_SEC
     test_refresh_default && pass "refresh_default" || fail "refresh_default"
-    unset password SSH_PASSWORD
+    unset PASSWORD SSH_PASSWORD
     test_password_key && pass "password_key" || fail "password_key"
 }
 
