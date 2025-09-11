@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/modules/collectors.sh"
 source "$ROOT_DIR/modules/config.sh"
+source "$ROOT_DIR/modules/render.sh"
 
 # Regression test: the output of collect_servers must match the order of
 # SERVER_NAME provided by the config file. This previously failed because the
@@ -64,6 +65,12 @@ run_ssh() {
         else
             echo "20%"
         fi
+    elif [[ $cmd == *"free -m"* ]]; then
+        if [[ $host == host1 ]]; then
+            echo "30%"
+        else
+            echo "40%"
+        fi
     else
         echo "$user@$host:$cmd"
     fi
@@ -87,12 +94,46 @@ if [ "$result_disk" != "$expected_disk" ]; then
     exit 1
 fi
 
-expected_all=$'alpha\tuser1@host1:uptime\t10%\nbeta\tuser2@host2:uptime\t20%'
+expected_ram=$'alpha\t30%\nbeta\t40%'
+result_ram="$(collect_ram_usage)"
+if [ "$result_ram" != "$expected_ram" ]; then
+    echo "collect_ram_usage mismatch" >&2
+    echo "Expected:\n$expected_ram" >&2
+    echo "Got:\n$result_ram" >&2
+    exit 1
+fi
+
+expected_all=$'alpha\tuser1@host1:uptime\t10%\t30%\nbeta\tuser2@host2:uptime\t20%\t40%'
 result_all="$(collect_all uptime)"
 if [ "$result_all" != "$expected_all" ]; then
     echo "collect_all mismatch" >&2
     echo "Expected:\n$expected_all" >&2
     echo "Got:\n$result_all" >&2
+    exit 1
+fi
+
+data=$'alpha\tuser1@host1:uptime\t10%\t30%\nbeta\tuser2@host2:uptime\t20%\t40%'
+expected_json=$'[
+  {"name":"alpha","host":"","uptime":"user1@host1:uptime","disk_usage":"10%","ram_usage":"30%"},
+  {"name":"beta","host":"","uptime":"user2@host2:uptime","disk_usage":"20%","ram_usage":"40%"}
+]'
+result_json="$(render_json "$data")"
+if [ "$result_json" != "$expected_json" ]; then
+    echo "render_json mismatch" >&2
+    echo "Expected:\n$expected_json" >&2
+    echo "Got:\n$result_json" >&2
+    exit 1
+fi
+
+tput() { :; }
+result_table="$(render_table "$data")"
+expected_table=$(printf '%-20s %-20s %-10s %-10s\n' "NAME" "UPTIME" "DISK%" "RAM%"; \
+                 printf '%-20s %-20s %-10s %-10s\n' "alpha" "user1@host1:uptime" "10%" "30%"; \
+                 printf '%-20s %-20s %-10s %-10s' "beta" "user2@host2:uptime" "20%" "40%")
+if [ "$result_table" != "$expected_table" ]; then
+    echo "render_table mismatch" >&2
+    echo "Expected:\n$expected_table" >&2
+    echo "Got:\n$result_table" >&2
     exit 1
 fi
 

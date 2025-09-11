@@ -10,6 +10,7 @@ concurrency=10
 ping_count=1
 ping_timeout=1
 # Disk usage metrics run `df -h /` on the remote host.
+# RAM usage metrics run `free -m` on the remote host.
 
 [server "local"]
 host=localhost
