@@ -19,6 +19,10 @@ host=localhost
 host=localhost
 CFG
 parse_config "$cfg"
+if env | grep -q '^SERVER_NAME='; then
+    echo "SERVER_NAME should not be exported" >&2
+    exit 1
+fi
 result="$(collect_servers)"
 # Command substitution strips the trailing newline, so the expected string
 # deliberately omits it as well.
