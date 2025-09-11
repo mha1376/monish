@@ -58,6 +58,34 @@ CFG
     [[ "$user" == "\$(touch \"$tmp\")" && ! -e "$tmp" ]]
 }
 
+test_server_sections() {
+    local cfg
+    cfg=$(mktemp)
+    cat <<'CFG' > "$cfg"
+[defaults]
+refresh_sec=5
+
+[server "alpha"]
+host=localhost
+[server "beta"]
+host=localhost
+CFG
+    parse_config "$cfg"
+    [[ "$SERVER_NAME" == "alpha beta" && "$REFRESH_SEC" == "5" ]]
+}
+
+test_refresh_default() {
+    local cfg
+    cfg=$(mktemp)
+    cat <<'CFG' > "$cfg"
+[server "alpha"]
+host=localhost
+CFG
+    unset REFRESH_SEC
+    parse_config "$cfg"
+    [[ "$REFRESH_SEC" == "3" ]]
+}
+
 run_tests() {
     test_hash_in_quotes && pass "hash_in_quotes" || fail "hash_in_quotes"
     unset ssh_options user
@@ -68,6 +96,10 @@ run_tests() {
     test_invalid_key_rejected && pass "invalid_key_rejected" || fail "invalid_key_rejected"
     unset ssh_options user badkey
     test_command_injection_ignored && pass "command_injection_ignored" || fail "command_injection_ignored"
+    unset ssh_options user badkey
+    test_server_sections && pass "server_sections" || fail "server_sections"
+    unset SERVER_NAME REFRESH_SEC
+    test_refresh_default && pass "refresh_default" || fail "refresh_default"
 }
 
 run_tests

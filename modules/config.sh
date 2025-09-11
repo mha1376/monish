@@ -7,6 +7,9 @@
 parse_config() {
     local file="$1"
     local key value
+    SERVER_NAME=""
+    REFRESH_SEC=3
+    local section_re='^\[server[[:space:]]+"([^"]+)"\]$'
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Use awk to strip comments only when outside quotes
         line=$(printf '%s\n' "$line" | awk '{
@@ -26,6 +29,11 @@ parse_config() {
         [[ -z "$line" ]] && continue
         [[ "$line" == \#* || "$line" == \;* ]] && continue
 
+        if [[ $line =~ $section_re ]]; then
+            SERVER_NAME="${SERVER_NAME:+$SERVER_NAME }${BASH_REMATCH[1]}"
+            continue
+        fi
+
         if [[ "$line" == *"="* ]]; then
             key="${line%%=*}"
             value="${line#*=}"
@@ -43,7 +51,10 @@ parse_config() {
             [[ $value == ~* ]] && value="${value/#~/$HOME}"
 
             case "$key" in
-                host|port|user|auth|key_path|ssh_options|refresh_sec|concurrency|ping_count|ping_timeout)
+                refresh_sec)
+                    REFRESH_SEC="$value"
+                    ;;
+                host|port|user|auth|key_path|ssh_options|concurrency|ping_count|ping_timeout)
                     printf -v "$key" '%s' "$value"
                     ;;
             esac

@@ -3,12 +3,22 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/modules/collectors.sh"
+source "$ROOT_DIR/modules/config.sh"
 
 # Regression test: the output of collect_servers must match the order of
-# SERVER_NAME. This previously failed because the implementation sorted by
-# file contents rather than numeric filename.
+# SERVER_NAME provided by the config file. This previously failed because the
+# implementation sorted by file contents rather than numeric filename.
 
-SERVER_NAME="100 5 20"
+cfg=$(mktemp)
+cat <<'CFG' > "$cfg"
+[server "100"]
+host=localhost
+[server "5"]
+host=localhost
+[server "20"]
+host=localhost
+CFG
+parse_config "$cfg"
 result="$(collect_servers)"
 # Command substitution strips the trailing newline, so the expected string
 # deliberately omits it as well.
