@@ -32,6 +32,11 @@ One-shot and JSON:
 ./monish.sh --json --once > out.json
 ```
 
+## Disk usage collection
+monish gathers disk usage by executing `df -h /` on each server over SSH and
+parsing the used percentage. Ensure the `df` utility is available on the remote
+host; the root filesystem `/` is checked by default.
+
 ## Config reference
 All keys and defaults are shown in `monish.conf.example`. Define servers with sections:
 ```

@@ -9,6 +9,7 @@ refresh_sec=3
 concurrency=10
 ping_count=1
 ping_timeout=1
+# Disk usage metrics run `df -h /` on the remote host.
 
 [server "local"]
 host=localhost
