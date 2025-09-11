@@ -59,7 +59,7 @@ parse_config "$cfg"
 
 run_ssh() {
     local host=$1 user=$2 port=$3 auth=$4 key=$5 opts=$6 cmd=$7
-    if [[ $cmd == "df -h / --output=pcent | tail -n 1" ]]; then
+    if [[ $cmd == "df -h / --output=pcent | tail -n 1 | awk '{\$1=\$1};1'" ]]; then
         if [[ $host == host1 ]]; then
             echo "10%"
         else

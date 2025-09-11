@@ -57,7 +57,7 @@ collect_disk_usage() {
         local key=${KEY_PATH[$server]:-}
         local opts=${SSH_OPTIONS[$server]:-}
         local password=${PASSWORD[$server]:-}
-        local cmd="df -h / --output=pcent | tail -n 1"
+        local cmd="df -h / --output=pcent | tail -n 1 | awk '{\$1=\$1};1'"
         local usage
         SSH_PASSWORD="$password" usage=$(run_ssh "$host" "$user" "$port" "$auth" "$key" "$opts" "$cmd")
         printf '%s\t%s\n' "$server" "$usage"
