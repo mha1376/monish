@@ -37,6 +37,11 @@ monish gathers disk usage by executing `df -h /` on each server over SSH and
 parsing the used percentage. Ensure the `df` utility is available on the remote
 host; the root filesystem `/` is checked by default.
 
+## RAM usage collection
+monish calculates memory usage by running `free -m` on each remote host and
+deriving the used/total percentage from the `Mem` line. Ensure the `free`
+utility is installed on the server.
+
 ## Config reference
 All keys and defaults are shown in `monish.conf.example`. Define servers with sections:
 ```
