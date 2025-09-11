@@ -127,10 +127,12 @@ fi
 
 tput() { :; }
 result_table="$(render_table "$data")"
+# Strip ANSI color codes for comparison
+stripped_table="$(printf '%s' "$result_table" | sed -E 's/\x1b\[[0-9;]*m//g')"
 expected_table=$(printf '%-20s %-20s %-10s %-10s\n' "NAME" "UPTIME" "DISK%" "RAM%"; \
                  printf '%-20s %-20s %-10s %-10s\n' "alpha" "user1@host1:uptime" "10%" "30%"; \
                  printf '%-20s %-20s %-10s %-10s' "beta" "user2@host2:uptime" "20%" "40%")
-if [ "$result_table" != "$expected_table" ]; then
+if [ "$stripped_table" != "$expected_table" ]; then
     echo "render_table mismatch" >&2
     echo "Expected:\n$expected_table" >&2
     echo "Got:\n$result_table" >&2

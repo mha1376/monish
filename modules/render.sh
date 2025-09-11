@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# color helpers using ANSI escape codes
+color_green() { printf '\033[32m%s\033[0m' "$1"; }
+color_yellow() { printf '\033[33m%s\033[0m' "$1"; }
+color_red() { printf '\033[31m%s\033[0m' "$1"; }
 # escape_json: escape characters in a string for safe JSON embedding
 # Replaces backslashes and double quotes with escaped versions
 escape_json() {
@@ -51,6 +55,23 @@ render_table() {
   printf '%-20s %-20s %-10s %-10s\n' "NAME" "UPTIME" "DISK%" "RAM%"
   while IFS=$'\t' read -r name uptime disk_usage ram_usage || [[ -n "$name" ]]; do
     [[ -z "$name" ]] && continue
-    printf '%-20s %-20s %-10s %-10s\n' "$name" "$uptime" "$disk_usage" "$ram_usage"
+    local disk_pct=${disk_usage%?}
+    local ram_pct=${ram_usage%?}
+    local disk_colored ram_colored
+    if (( disk_pct < 70 )); then
+      disk_colored=$(color_green "$(printf '%-10s' "$disk_usage")")
+    elif (( disk_pct <= 85 )); then
+      disk_colored=$(color_yellow "$(printf '%-10s' "$disk_usage")")
+    else
+      disk_colored=$(color_red "$(printf '%-10s' "$disk_usage")")
+    fi
+    if (( ram_pct < 70 )); then
+      ram_colored=$(color_green "$(printf '%-10s' "$ram_usage")")
+    elif (( ram_pct <= 85 )); then
+      ram_colored=$(color_yellow "$(printf '%-10s' "$ram_usage")")
+    else
+      ram_colored=$(color_red "$(printf '%-10s' "$ram_usage")")
+    fi
+    printf '%-20s %-20s %s %s\n' "$name" "$uptime" "$disk_colored" "$ram_colored"
   done <<< "$data"
 }
