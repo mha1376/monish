@@ -40,6 +40,15 @@ host=1.2.3.4
 user=ubuntu
 ```
 
+For password-based SSH (requires `sshpass`), add the authentication method and password:
+```
+[server "name"]
+host=1.2.3.4
+user=ubuntu
+auth=password
+password=s3cr3t
+```
+
 The refresh interval is configured via `refresh_sec` (default 3 seconds). `monish.sh` automatically reads server names from all `[server "..."]` sections in the config, so no environment variables are required.
 
 ## Color thresholds

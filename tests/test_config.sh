@@ -86,6 +86,16 @@ CFG
     [[ "$REFRESH_SEC" == "3" ]]
 }
 
+test_password_key() {
+    local cfg
+    cfg=$(mktemp)
+    cat <<'CFG' > "$cfg"
+password=s3cr3t
+CFG
+    parse_config "$cfg"
+    [[ "$password" == 's3cr3t' && "$SSH_PASSWORD" == 's3cr3t' ]]
+}
+
 run_tests() {
     test_hash_in_quotes && pass "hash_in_quotes" || fail "hash_in_quotes"
     unset ssh_options user
@@ -100,6 +110,8 @@ run_tests() {
     test_server_sections && pass "server_sections" || fail "server_sections"
     unset SERVER_NAME REFRESH_SEC
     test_refresh_default && pass "refresh_default" || fail "refresh_default"
+    unset password SSH_PASSWORD
+    test_password_key && pass "password_key" || fail "password_key"
 }
 
 run_tests

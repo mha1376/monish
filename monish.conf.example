@@ -12,3 +12,10 @@ ping_timeout=1
 
 [server "local"]
 host=localhost
+
+# Example using password authentication (requires sshpass)
+#[server "password_example"]
+#host=example.com
+#user=root
+#auth=password
+#password=yourpassword
