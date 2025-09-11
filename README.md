@@ -18,8 +18,11 @@ Lightweight Bash server monitoring dashboard.
 ```bash
 git clone <repo>
 cd monish
-cp monish.conf.example monish.conf
-# edit monish.conf
+cp monish.conf.example monish.conf  # copy example to local config
+
+# edit the new config file
+$EDITOR monish.conf
+
 ./monish.sh -c monish.conf
 ```
 
