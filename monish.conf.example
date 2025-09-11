@@ -1,4 +1,5 @@
 # Example configuration using a local server and default refresh interval.
+# RAM usage is automatically gathered via `free -m` on each server.
 [defaults]
 port=22
 user=root

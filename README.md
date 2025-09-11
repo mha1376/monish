@@ -7,7 +7,7 @@ Lightweight Bash server monitoring dashboard.
 - CPU load, RAM%, disk%, uptime, ping
 - Parallel SSH checks with minimal dependencies
 - Color thresholds
-- JSON output for automation
+- JSON output for automation (includes `ram_usage`)
 
 ## Requirements
 - Bash
@@ -50,6 +50,11 @@ password=s3cr3t
 ```
 
 The refresh interval is configured via `refresh_sec` (default 3 seconds). `monish.sh` automatically reads server names from all `[server "..."]` sections in the config, so no environment variables are required.
+
+## RAM monitoring
+`monish` queries each server with `free -m` and calculates the percentage of used
+memory. This value is shown in the table output and as the `ram_usage` field in
+JSON mode. No additional configuration is required.
 
 ## Color thresholds
 | Metric | Green | Yellow | Red |

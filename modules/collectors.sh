@@ -45,8 +45,26 @@ collect_remote() {
     done
 }
 
+# collect_ram_usage: run `free -m` on each server and report used/total %
+collect_ram_usage() {
+    [[ -n ${SERVER_NAME:-} ]] || { echo "SERVER_NAME not set" >&2; return 1; }
+    for server in $SERVER_NAME; do
+        local host=${HOST[$server]}
+        local user=${USER[$server]}
+        local port=${PORT[$server]:-22}
+        local auth=${AUTH[$server]:-key}
+        local key=${KEY_PATH[$server]:-}
+        local opts=${SSH_OPTIONS[$server]:-}
+        local password=${PASSWORD[$server]:-}
+        local output pct
+        SSH_PASSWORD="$password" output=$(run_ssh "$host" "$user" "$port" "$auth" "$key" "$opts" "free -m")
+        pct=$(awk '/^Mem:/ {printf "%.1f", ($3/$2)*100}' <<<"$output")
+        printf '%s\t%s\n' "$server" "$pct"
+    done
+}
+
 # collect_all: gather data from all configured collectors. Currently this
-# proxies to collect_remote, returning the command output for each server.
+# returns RAM usage for each server.
 collect_all() {
-    collect_remote "$@"
+    collect_ram_usage
 }

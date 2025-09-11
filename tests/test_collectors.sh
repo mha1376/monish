@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/modules/collectors.sh"
 source "$ROOT_DIR/modules/config.sh"
+source "$ROOT_DIR/modules/render.sh"
 
 # Regression test: the output of collect_servers must match the order of
 # SERVER_NAME provided by the config file. This previously failed because the
@@ -44,7 +45,7 @@ if [[ "$output" != "SERVER_NAME not set" ]]; then
     exit 1
 fi
 
-# collect_remote / collect_all should return command results for each server
+# collect_remote should return command results for each server
 cfg=$(mktemp)
 cat <<'CFG' > "$cfg"
 [server "alpha"]
@@ -70,11 +71,50 @@ if [ "$result_remote" != "$expected_remote" ]; then
     exit 1
 fi
 
-result_all="$(collect_all uptime)"
-if [ "$result_all" != "$expected_remote" ]; then
+# collect_ram_usage / collect_all should report RAM percentage per server
+run_ssh() {
+    local host=$1
+    if [[ $host == host1 ]]; then
+        printf '%s\n' "              total        used        free" "Mem:          1000         400         600"
+    else
+        printf '%s\n' "              total        used        free" "Mem:          2000        1500         500"
+    fi
+}
+
+expected_ram=$'alpha\t40.0\nbeta\t75.0'
+result_ram="$(collect_ram_usage)"
+if [ "$result_ram" != "$expected_ram" ]; then
+    echo "collect_ram_usage mismatch" >&2
+    echo "Expected:\n$expected_ram" >&2
+    echo "Got:\n$result_ram" >&2
+    exit 1
+fi
+
+result_all="$(collect_all)"
+if [ "$result_all" != "$expected_ram" ]; then
     echo "collect_all mismatch" >&2
-    echo "Expected:\n$expected_remote" >&2
+    echo "Expected:\n$expected_ram" >&2
     echo "Got:\n$result_all" >&2
+    exit 1
+fi
+
+# Rendering helpers
+tput() { :; }
+json="$(render_json "$result_all")"
+expected_json=$'[\n  {"name":"alpha","ram_usage":"40.0"},\n  {"name":"beta","ram_usage":"75.0"}\n]'
+if [ "$json" != "$expected_json" ]; then
+    echo "render_json mismatch" >&2
+    echo "Expected:\n$expected_json" >&2
+    echo "Got:\n$json" >&2
+    exit 1
+fi
+
+table="$(render_table "$result_all")"
+expected_table=$(printf '%-20s%-10s\n' "NAME" "RAM%"; printf '%-20s%-10s\n' "alpha" "40.0"; printf '%-20s%-10s\n' "beta" "75.0")
+if [ "$table" != "$expected_table" ]; then
+    echo "render_table mismatch" >&2
+    echo "Expected:\n$expected_table" >&2
+    echo "Got:\n$table" >&2
     exit 1
 fi
 
